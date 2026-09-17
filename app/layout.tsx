@@ -30,20 +30,17 @@ export const metadata: Metadata = {
   title: 'Sash — Be there without being there.',
   description:
     'Hire credible people at events you cannot attend. They wear your brand, take the meetings, and bring back proof.',
-  icons: { icon: '/sash-logo.png' },
   openGraph: {
     title: 'Sash — Be there without being there.',
     description: 'Every person at a conference is unsold advertising space.',
     url: site,
     siteName: 'Sash',
-    images: ['/sash-logo.png'],
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Sash — Be there without being there.',
     description: 'Every person at a conference is unsold advertising space.',
-    images: ['/sash-logo.png'],
   },
 };
 
