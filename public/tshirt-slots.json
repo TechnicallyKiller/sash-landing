@@ -1,0 +1,108 @@
+{
+ "garment": "tee",
+ "unit": "m",
+ "up": "Y",
+ "front": "+Z",
+ "bbox": {
+  "width": 0.643,
+  "height": 0.699,
+  "depth": 0.273
+ },
+ "slots": [
+  {
+   "id": "front-chest",
+   "label": "Front chest",
+   "position": [
+    0.0,
+    0.52,
+    0.1054
+   ],
+   "normal": [
+    -0.0015,
+    0.3505,
+    0.9366
+   ],
+   "size": [
+    0.11,
+    0.11
+   ],
+   "maxAspect": 2.0
+  },
+  {
+   "id": "front-full",
+   "label": "Front full",
+   "position": [
+    0.0,
+    0.4,
+    0.1242
+   ],
+   "normal": [
+    0.0054,
+    0.0846,
+    0.9964
+   ],
+   "size": [
+    0.28,
+    0.34
+   ],
+   "maxAspect": 1.3
+  },
+  {
+   "id": "back-full",
+   "label": "Back full",
+   "position": [
+    0.0,
+    0.42,
+    -0.133
+   ],
+   "normal": [
+    -0.0205,
+    -0.0299,
+    -0.9993
+   ],
+   "size": [
+    0.3,
+    0.36
+   ],
+   "maxAspect": 1.3
+  },
+  {
+   "id": "left-sleeve",
+   "label": "Left sleeve",
+   "position": [
+    -0.28,
+    0.46,
+    0.02
+   ],
+   "normal": [
+    -0.5799,
+    0.366,
+    0.7278
+   ],
+   "size": [
+    0.08,
+    0.08
+   ],
+   "maxAspect": 1.6
+  },
+  {
+   "id": "right-sleeve",
+   "label": "Right sleeve",
+   "position": [
+    0.2794,
+    0.46,
+    0.02
+   ],
+   "normal": [
+    0.649,
+    0.3935,
+    0.6511
+   ],
+   "size": [
+    0.08,
+    0.08
+   ],
+   "maxAspect": 1.6
+  }
+ ]
+}

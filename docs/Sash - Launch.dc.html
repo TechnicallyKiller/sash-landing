@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="importmap">
+{"imports":{"three":"https://esm.sh/three@0.160.0","three/addons/":"https://esm.sh/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module" src="./sash-viewer.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#fff;color:#000;font-family:"DM Mono",ui-monospace,monospace;font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+a{color:#000;text-decoration:underline;text-underline-offset:4px}
+a:hover{color:#FF4D00}
+::selection{background:#E4FF00;color:#000}
+:focus-visible{outline:3px solid #FF4D00;outline-offset:2px}
+input,select,button,textarea{font-family:"DM Mono",ui-monospace,monospace;font-size:15px;color:#000;border-radius:0}
+@keyframes sash-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
+</style>
+</helmet>
+
+<a href="#inventory" style="position:absolute;left:-9999px;top:0;background:#fff;border:3px solid #000;padding:10px 14px;z-index:99" style-focus="left:8px;top:8px">Skip to inventory</a>
+
+<header style="height:72px;border-bottom:3px solid #000;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:0 clamp(16px,3vw,32px);position:sticky;top:0;background:#fff;z-index:40">
+  <span style="display:inline-flex;align-items:baseline;gap:1px;font-family:Archivo,sans-serif;font-weight:900;font-size:30px;line-height:1;letter-spacing:-.035em">s<span style="display:inline-block;width:.52em;height:.62em;border:3px dashed #FF4D00;margin:0 .02em"></span>sh</span>
+  <nav style="display:flex;align-items:center;gap:clamp(12px,2vw,26px);flex-wrap:nowrap">
+    <a href="#inventory" style="text-decoration:none">Inventory</a>
+    <a href="#how" style="text-decoration:none">How it works</a>
+    <a href="#access" style="background:#000;color:#fff;text-decoration:none;padding:12px 18px;border:3px solid #000;white-space:nowrap">Get early access</a>
+  </nav>
+</header>
+
+<section style="display:grid;grid-template-columns:{{ heroCols }};min-height:calc(100dvh - 72px);border-bottom:3px solid #000">
+  <div style="display:flex;flex-direction:column;justify-content:center;gap:28px;padding:clamp(28px,4vw,64px);min-width:0">
+    <h1 style="margin:0;font-family:Archivo,sans-serif;font-weight:900;font-size:clamp(50px,6.6vw,104px);line-height:.9;letter-spacing:-.035em;animation:sash-in 520ms cubic-bezier(.2,.9,.3,1) both">Be there without being there.</h1>
+    <p style="margin:0;max-width:52ch;animation:sash-in 520ms cubic-bezier(.2,.9,.3,1) 140ms both">Hire credible people at events you cannot attend. They wear your brand, take the meetings, and bring back proof.</p>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;animation:sash-in 520ms cubic-bezier(.2,.9,.3,1) 260ms both">
+      <a href="#access" style="background:#000;color:#fff;text-decoration:none;border:3px solid #000;padding:17px 24px;font-weight:500">Get early access</a>
+      <a href="#inventory" style="background:#fff;color:#000;text-decoration:none;border:3px solid #000;padding:17px 24px;font-weight:500">See the inventory</a>
+    </div>
+  </div>
+  <div style="border-left:{{ heroRuleLeft }};border-top:{{ heroRuleTop }};min-width:0;min-height:{{ heroViewerMin }};display:flex">
+    <x-import component-from-global-scope="sash-viewer" base="uploads/" style="flex:1;min-width:0" hint-size="100%,100%"></x-import>
+  </div>
+</section>
+
+<section ref="{{ missionRef }}" style="background:#E4FF00;border-top:3px solid #000;border-bottom:3px solid #000;padding:clamp(40px,6vw,88px) clamp(16px,3vw,32px)">
+  <h2 style="margin:0;font-family:Archivo,sans-serif;font-weight:900;font-size:clamp(38px,6vw,96px);line-height:.9;letter-spacing:-.035em;max-width:22ch">
+    <sc-for list="{{ missionWords }}" as="w" hint-placeholder-count="9">
+      <span style="opacity:{{ w.o }}">{{ w.t }} </span>
+    </sc-for>
+  </h2>
+  <p style="margin:26px 0 0;max-width:62ch">Chest panels, tote faces, profile banners, an hour of meetings taken on your behalf, someone credible to speak for you at an event you are missing. The list gets longer every month.</p>
+</section>
+
+<section id="inventory" style="border-bottom:3px solid #000">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;padding:clamp(28px,4vw,56px) clamp(16px,3vw,32px) 40px">
+    <h2 style="margin:0;padding-bottom:8px;font-family:Archivo,sans-serif;font-weight:900;font-size:clamp(32px,4.4vw,64px);line-height:.95;letter-spacing:-.035em;max-width:18ch">What a person can sell.</h2>
+    <p style="margin:0;max-width:40ch">A slot is any defined thing, for a defined window, with defined proof. Scroll the rail sideways.</p>
+  </div>
+  <div role="region" aria-label="Inventory" tabindex="0" style="display:flex;overflow-x:auto;scroll-snap-type:x mandatory;border-top:3px solid #000;border-bottom:3px solid #000">
+    <sc-for list="{{ rail }}" as="r" hint-placeholder-count="18">
+      <sc-if value="{{ r.isGroup }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:0 0 auto;width:62px;border-right:3px solid #000;background:#000;color:#fff;display:flex;align-items:flex-end;justify-content:center;padding:18px 0;scroll-snap-align:start">
+          <span style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:13px;letter-spacing:.14em">{{ r.label }}</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{ r.isCard }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:0 0 auto;width:min(84vw,300px);border-right:3px solid #000;padding:22px;display:flex;flex-direction:column;gap:16px;scroll-snap-align:start">
+          <div style="font-size:13px">{{ r.cat }}</div>
+          <div style="font-family:Archivo,sans-serif;font-weight:800;font-size:26px;line-height:1;letter-spacing:-.02em">{{ r.slot }}</div>
+          <div style="height:96px;display:flex;align-items:center">
+            <sc-if value="{{ r.open }}" hint-placeholder-val="{{ true }}">
+              <div style="width:96px;height:72px;border:3px dashed #FF4D00"></div>
+            </sc-if>
+            <sc-if value="{{ r.sold }}" hint-placeholder-val="{{ false }}">
+              <div style="width:72px;height:72px;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-family:Archivo,sans-serif;font-weight:900;font-size:34px;line-height:1">{{ r.mark }}</div>
+            </sc-if>
+          </div>
+          <div style="font-family:Archivo,sans-serif;font-weight:900;font-size:44px;line-height:.9;letter-spacing:-.035em">{{ r.price }}</div>
+          <div style="font-size:13px">{{ r.status }}</div>
+          <p style="margin:auto 0 0;border-top:3px solid #000;padding-top:14px">{{ r.why }}</p>
+        </div>
+      </sc-if>
+      <sc-if value="{{ r.isLast }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:0 0 auto;width:min(84vw,340px);padding:22px;display:flex;flex-direction:column;gap:18px;justify-content:center;scroll-snap-align:start">
+          <div style="width:100%;height:104px;border:3px dashed #FF4D00"></div>
+          <p style="margin:0;font-family:Archivo,sans-serif;font-weight:800;font-size:24px;line-height:1.05;letter-spacing:-.02em">Whatever you can prove you did.</p>
+          <form onSubmit="{{ addCustom }}" style="display:flex;flex-direction:column;gap:10px">
+            <label style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:13px">Name a thing you could sell</span>
+              <input type="text" value="{{ draft }}" onChange="{{ setDraft }}" placeholder="A weekly newsletter mention" style="border:3px solid #000;padding:12px;background:#fff"/>
+            </label>
+            <button type="submit" style="background:#000;color:#fff;border:3px solid #000;padding:13px 16px;font-weight:500;cursor:pointer;min-height:44px">Add it to the rail</button>
+          </form>
+        </div>
+      </sc-if>
+    </sc-for>
+  </div>
+</section>
+
+<section id="how" style="border-bottom:3px solid #000">
+  <h2 style="margin:0;font-family:Archivo,sans-serif;font-weight:900;font-size:clamp(32px,4.4vw,64px);line-height:.9;letter-spacing:-.035em;padding:clamp(28px,4vw,56px) clamp(16px,3vw,32px) 24px;max-width:20ch">Money moves last.</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));border-top:3px solid #000">
+    <div style="border-right:3px solid #000;padding:clamp(22px,3vw,40px);display:flex;flex-direction:column;gap:14px">
+      <div style="font-family:Archivo,sans-serif;font-weight:900;font-size:64px;line-height:.85;letter-spacing:-.035em">1</div>
+      <div style="font-family:Archivo,sans-serif;font-weight:800;font-size:26px;line-height:1.05;letter-spacing:-.02em">Buy the slot.</div>
+      <p style="margin:0">Pick what you want and the window you want it for. The price is the seller's. You agree what counts as proof before anyone starts.</p>
+    </div>
+    <div style="border-right:3px solid #000;padding:clamp(22px,3vw,40px);display:flex;flex-direction:column;gap:14px">
+      <div style="font-family:Archivo,sans-serif;font-weight:900;font-size:64px;line-height:.85;letter-spacing:-.035em">2</div>
+      <div style="font-family:Archivo,sans-serif;font-weight:800;font-size:26px;line-height:1.05;letter-spacing:-.02em">Escrow holds it.</div>
+      <p style="margin:0">Your payment locks before the work happens, so the seller knows it is real. Neither side can move it while it sits there.</p>
+    </div>
+    <div style="padding:clamp(22px,3vw,40px);display:flex;flex-direction:column;gap:14px">
+      <div style="font-family:Archivo,sans-serif;font-weight:900;font-size:64px;line-height:.85;letter-spacing:-.035em">3</div>
+      <div style="font-family:Archivo,sans-serif;font-weight:800;font-size:26px;line-height:1.05;letter-spacing:-.02em">Proof releases it.</div>
+      <p style="margin:0">The seller files what they agreed to file. You look at it. Nothing arrives, nothing is paid, and the refund is automatic.</p>
+    </div>
+  </div>
+</section>
+
+<section id="access" style="background:#FF4D00;border-bottom:3px solid #000;padding:clamp(34px,5vw,80px) clamp(16px,3vw,32px);display:flex;justify-content:center">
+  <div style="width:100%;max-width:640px;background:#fff;border:3px solid #000;padding:clamp(22px,3vw,40px)">
+    <sc-if value="{{ sent }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="font-family:Archivo,sans-serif;font-weight:900;font-size:clamp(30px,3.6vw,48px);line-height:.92;letter-spacing:-.035em">You are on the list.</div>
+        <p style="margin:0">We will write once, when the first event opens, and tell you what is in it. Nothing else.</p>
+        <div style="border-top:3px solid #000;padding-top:14px">{{ sentSummary }}</div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ notSent }}" hint-placeholder-val="{{ true }}">
+      <form onSubmit="{{ submit }}" noValidate style="display:flex;flex-direction:column;gap:20px">
+        <div>
+          <div style="font-family:Archivo,sans-serif;font-weight:900;font-size:clamp(30px,3.6vw,48px);line-height:.92;letter-spacing:-.035em">Get early access.</div>
+          <p style="margin:10px 0 0">The first event is small on purpose. Tell us what you want and we will say whether it is in there.</p>
+        </div>
+        <sc-if value="{{ isAsking }}" hint-placeholder-val="{{ false }}">
+          <div style="border:3px dashed #FF4D00;padding:14px 16px;display:flex;flex-direction:column;gap:4px">
+            <span style="font-size:13px">You are asking about</span>
+            <span>{{ asking }}</span>
+          </div>
+        </sc-if>
+        <label style="display:flex;flex-direction:column;gap:8px">
+          <span>Name</span>
+          <input type="text" value="{{ fName }}" onChange="{{ setName }}" aria-invalid="{{ errNameFlag }}" style="border:3px solid #000;padding:13px;background:#fff;outline:{{ errNameRing }}"/>
+          <sc-if value="{{ errName }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px">{{ errName }}</span></sc-if>
+        </label>
+        <label style="display:flex;flex-direction:column;gap:8px">
+          <span>Email</span>
+          <input type="email" value="{{ fEmail }}" onChange="{{ setEmail }}" aria-invalid="{{ errEmailFlag }}" style="border:3px solid #000;padding:13px;background:#fff;outline:{{ errEmailRing }}"/>
+          <sc-if value="{{ errEmail }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px">{{ errEmail }}</span></sc-if>
+        </label>
+        <label style="display:flex;flex-direction:column;gap:8px">
+          <span>You are</span>
+          <select value="{{ fRole }}" onChange="{{ setRole }}" aria-invalid="{{ errRoleFlag }}" style="border:3px solid #000;padding:13px;background:#fff;outline:{{ errRoleRing }}">
+            <option value="">Choose one</option>
+            <option value="Brand">Brand</option>
+            <option value="Creator">Creator</option>
+            <option value="Agency">Agency</option>
+          </select>
+          <sc-if value="{{ errRole }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px">{{ errRole }}</span></sc-if>
+        </label>
+        <label style="display:flex;flex-direction:column;gap:8px">
+          <span>Your X handle</span>
+          <input type="text" value="{{ fHandle }}" onChange="{{ setHandle }}" aria-invalid="{{ errHandleFlag }}" style="border:3px solid #000;padding:13px;background:#fff;outline:{{ errHandleRing }}"/>
+          <sc-if value="{{ errHandle }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px">{{ errHandle }}</span></sc-if>
+        </label>
+        <label style="display:flex;flex-direction:column;gap:8px">
+          <span>Event you care about</span>
+          <input type="text" value="{{ fEvent }}" onChange="{{ setEvent }}" style="border:3px solid #000;padding:13px;background:#fff"/>
+        </label>
+        <button type="submit" style="background:#000;color:#fff;border:3px solid #000;padding:17px 24px;font-weight:500;cursor:pointer;align-self:flex-start;min-height:48px">Get early access</button>
+      </form>
+    </sc-if>
+  </div>
+</section>
+
+<footer style="display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;padding:clamp(24px,3vw,40px) clamp(16px,3vw,32px)">
+  <span style="display:inline-flex;align-items:baseline;gap:1px;font-family:Archivo,sans-serif;font-weight:900;font-size:30px;line-height:1;letter-spacing:-.035em">s<span style="display:inline-block;width:.52em;height:.62em;border:3px dashed #FF4D00;margin:0 .02em"></span>sh</span>
+  <span>The slot in our own logo is for sale too.</span>
+</footer>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440}}">
+class Component extends DCLogic {
+  constructor(p){
+    super(p);
+    this.missionRef = React.createRef();
+    this.state = {
+      mission: 0, wide: true,
+      name: '', email: '', role: '', handle: '', event: '',
+      errors: {}, sent: false, sentSummary: '',
+      draft: '', custom: [], asking: ''
+    };
+  }
+
+  componentDidMount(){
+    this.reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    if (this.reduce) this.setState({mission: 1});
+
+    this.measure = () => this.setState({wide: (window.innerWidth || 1200) >= 900});
+    this.tick = () => {
+      this.raf = null;
+      if (this.reduce) return;
+      const el = this.missionRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const vh = window.innerHeight || 800;
+      const p = (vh * 0.92 - r.top) / (vh * 0.52);
+      this.setState({mission: Math.max(0, Math.min(1, p))});
+    };
+    this.onScroll = () => { if (!this.raf) this.raf = requestAnimationFrame(this.tick); };
+    window.addEventListener('scroll', this.onScroll, {passive: true});
+    window.addEventListener('resize', this.onScroll);
+    window.addEventListener('resize', this.measure);
+    this.onTake = e => {
+      const d = e.detail || {};
+      this.setState({asking: d.item + ', ' + String(d.slot || '').toLowerCase() + ', ' + d.price + ' USDC'});
+      const a = document.getElementById('access');
+      if (a) window.scrollTo({top: a.offsetTop - 60, behavior: this.reduce ? 'auto' : 'smooth'});
+    };
+    this.onMark = e => {
+      const d = e.detail || {};
+      this.setState({asking: d.item + ', ' + String(d.slot || '').toLowerCase() + ', ' + d.price + ' USDC, your mark already on it'});
+    };
+    document.addEventListener('sash-slot-take', this.onTake);
+    document.addEventListener('sash-mark-set', this.onMark);
+    this.measure();
+    this.tick();
+  }
+
+  componentWillUnmount(){
+    window.removeEventListener('scroll', this.onScroll);
+    window.removeEventListener('resize', this.onScroll);
+    window.removeEventListener('resize', this.measure);
+    document.removeEventListener('sash-slot-take', this.onTake);
+    document.removeEventListener('sash-mark-set', this.onMark);
+    if (this.raf) cancelAnimationFrame(this.raf);
+  }
+
+  railData(){
+    const g = l => ({isGroup: true, isCard: false, isLast: false, label: l});
+    const c = (cat, slot, price, buyer, why) => ({
+      isGroup: false, isCard: true, isLast: false,
+      cat: cat, slot: slot, price: price, why: why,
+      open: !buyer, sold: !!buyer, mark: buyer ? buyer.charAt(0) : '',
+      status: buyer ? 'Sold to ' + buyer : 'Open'
+    });
+    return [
+      g('WORN'),
+      c('Worn surface', 'Front chest', '240 USDC', '', 'Read in every hallway conversation for two days straight.'),
+      c('Worn surface', 'Back panel', '310 USDC', 'Obol', 'The whole queue reads it while they wait for coffee.'),
+      c('Worn surface', 'Hood', '110 USDC', '', 'Small, cheap, and in shot behind whoever is on stage.'),
+      g('CARRIED'),
+      c('Carried surface', 'Tote face', '420 USDC', 'Sash', 'Put down on every table in the building, then photographed.'),
+      c('Carried surface', 'Laptop lid', '120 USDC', '', 'Open in every session, in the front row of other people pictures.'),
+      c('Carried surface', 'Backpack front', '150 USDC', '', 'Walks the floor at eye level for the full two days.'),
+      g('DIGITAL'),
+      c('Digital surface', 'Profile banner', '180 USDC', '', 'Seen by everyone who checks who just spoke.'),
+      c('Digital surface', 'Profile picture', '260 USDC', 'Meridian', 'Sits beside every reply they write during the week.'),
+      c('Digital surface', 'One post', '340 USDC', '', 'Written by them, in their voice, to people who already listen.'),
+      g('TIME'),
+      c('Time', 'An hour of meetings', '500 USDC', '', 'They take the meetings you cannot get to and send back notes.'),
+      c('Time', 'A day on the stand', '1,400 USDC', 'Northwind', 'Someone answers questions about you for the whole day.'),
+      g('REPRESENTATION'),
+      c('Representation', 'Event ambassador', '3,200 USDC', '', 'Someone credible speaks for you in a room you are not in.'),
+      c('Representation', 'Hosted dinner', '2,600 USDC', '', 'Twelve seats, your topic, a host people already trust.'),
+      c('Representation', 'Run of activations', '7,500 USDC', 'Halflight', 'A season of appearances instead of one afternoon.'),
+      {isGroup: false, isCard: false, isLast: true}
+    ];
+  }
+
+  customRows(){
+    if (!this.state.custom.length) return [];
+    const rows = [{isGroup: true, isCard: false, isLast: false, label: 'YOURS'}];
+    this.state.custom.forEach(t => rows.push({
+      isGroup: false, isCard: true, isLast: false,
+      cat: 'Your idea', slot: t, price: 'No price',
+      why: 'Not priced yet. Tell us what it is worth and we will list it.',
+      open: true, sold: false, mark: '', status: 'Open'
+    }));
+    return rows;
+  }
+
+  validate(){
+    const e = {};
+    if (!this.state.name.trim()) e.name = 'Enter the name we should write to.';
+    const em = this.state.email.trim();
+    if (!em) e.email = 'Enter an email address.';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)) e.email = 'That address is missing an @ or a domain. Check it and try again.';
+    if (!this.state.role) e.role = 'Pick one so we send you the right list.';
+    const h = this.state.handle.trim();
+    if (h && !/^@?[A-Za-z0-9_]{1,15}$/.test(h)) e.handle = 'That is not a handle. Letters, numbers and underscores, up to 15.';
+    return e;
+  }
+
+  renderVals(){
+    const words = 'Every person at a conference is unsold advertising space.'.split(' ');
+    const p = this.state.mission;
+    const missionWords = words.map((t, i) => {
+      const start = i / (words.length + 2);
+      const o = Math.max(0, Math.min(1, (p - start) / 0.16));
+      return {t: t, o: (0.12 + 0.88 * o).toFixed(3)};
+    });
+
+    const err = this.state.errors;
+    const ring = k => err[k] ? '3px solid #FF4D00' : 'none';
+
+    return {
+      missionRef: this.missionRef,
+      missionWords: missionWords,
+      heroCols: this.state.wide ? '1fr 1fr' : '1fr',
+      heroRuleLeft: this.state.wide ? '3px solid #000' : '0',
+      heroRuleTop: this.state.wide ? '0' : '3px solid #000',
+      heroViewerMin: this.state.wide ? '0' : '460px',
+      rail: (() => {
+        const base = this.railData();
+        const last = base.pop();
+        return base.concat(this.customRows(), [last]);
+      })(),
+      draft: this.state.draft,
+      setDraft: e => this.setState({draft: e.target.value}),
+      addCustom: e => {
+        e.preventDefault();
+        const t = this.state.draft.trim();
+        if (!t) return;
+        this.setState(st => ({custom: st.custom.concat([t]).slice(-6), draft: ''}));
+      },
+      asking: this.state.asking, isAsking: !!this.state.asking,
+
+      fName: this.state.name, fEmail: this.state.email, fRole: this.state.role,
+      fHandle: this.state.handle, fEvent: this.state.event,
+      setHandle: e => this.setState({handle: e.target.value}),
+      errHandle: err.handle || '', errHandleFlag: err.handle ? 'true' : 'false', errHandleRing: ring('handle'),
+      setName: e => this.setState({name: e.target.value}),
+      setEmail: e => this.setState({email: e.target.value}),
+      setRole: e => this.setState({role: e.target.value}),
+      setEvent: e => this.setState({event: e.target.value}),
+      errName: err.name || '', errEmail: err.email || '', errRole: err.role || '',
+      errNameFlag: err.name ? 'true' : 'false', errEmailFlag: err.email ? 'true' : 'false', errRoleFlag: err.role ? 'true' : 'false',
+      errNameRing: ring('name'), errEmailRing: ring('email'), errRoleRing: ring('role'),
+      sent: this.state.sent, notSent: !this.state.sent,
+      sentSummary: this.state.sentSummary,
+      submit: e => {
+        e.preventDefault();
+        const errors = this.validate();
+        if (Object.keys(errors).length) { this.setState({errors: errors}); return; }
+        const ev = this.state.event.trim();
+        const h = this.state.handle.trim();
+        this.setState({
+          errors: {}, sent: true,
+          sentSummary: this.state.role + ', ' + this.state.email
+            + (h ? ', ' + (h.charAt(0) === '@' ? h : '@' + h) : '')
+            + (ev ? ', watching ' + ev : ', no event named yet')
+            + (this.state.asking ? '. Asking about ' + this.state.asking + '.' : '')
+        });
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>
