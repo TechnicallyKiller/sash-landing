@@ -174,6 +174,15 @@ function paint(mesh: SlotMesh, state: PlateState) {
   d.state = state;
 }
 
+/* Distance at which a sphere of `radius` fits the frame, honouring BOTH axes.
+   On a narrow portrait viewport the horizontal field of view is the tighter of
+   the two, so fitting to the vertical one alone clips a wide garment. */
+function fitDistance(camera: THREE.PerspectiveCamera, radius: number) {
+  const vFov = (camera.fov * Math.PI) / 180;
+  const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
+  return Math.max(radius / Math.sin(vFov / 2), radius / Math.sin(hFov / 2)) * 1.12;
+}
+
 export default function GarmentViewer() {
   const { setAsking, goToAccess } = useAsking();
 
@@ -197,6 +206,7 @@ export default function GarmentViewer() {
     selected: SlotMesh | null;
     hovered: SlotMesh | null;
     pointerInside: boolean;
+    fit: { center: THREE.Vector3; radius: number; lift: number } | null;
   } | null>(null);
 
   /* ---- scene, built once ------------------------------------------------ */
@@ -206,7 +216,8 @@ export default function GarmentViewer() {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    const coarse = window.matchMedia('(pointer: coarse)').matches;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, coarse ? 1.75 : 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
@@ -243,7 +254,7 @@ export default function GarmentViewer() {
 
     api.current = {
       scene, camera, renderer, controls, garmentRoot, markerRoot,
-      selected: null, hovered: null, pointerInside: false,
+      selected: null, hovered: null, pointerInside: false, fit: null,
     };
 
     const resize = () => {
@@ -252,6 +263,18 @@ export default function GarmentViewer() {
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
+
+      // Keep the garment framed when the viewport changes shape (phone rotation,
+      // browser chrome sliding away), without throwing away the user's orbit.
+      const fit = api.current?.fit;
+      if (fit) {
+        const dir = camera.position.clone().sub(controls.target).normalize();
+        controls.target.copy(fit.center);
+        camera.position.copy(fit.center).addScaledVector(dir, fitDistance(camera, fit.radius));
+        camera.position.y += fit.lift;
+        camera.updateProjectionMatrix();
+        controls.update();
+      }
     };
     const ro = new ResizeObserver(resize);
     ro.observe(wrap);
@@ -358,9 +381,11 @@ export default function GarmentViewer() {
         const size = box.getSize(new THREE.Vector3());
         const center = box.getCenter(new THREE.Vector3());
         const radius = Math.max(size.x, size.y, size.z) * 0.5;
-        const dist = (radius / Math.sin(((s.camera.fov * Math.PI) / 180) / 2)) * 1.12;
+        const lift = size.y * 0.06;
+        s.fit = { center: center.clone(), radius, lift };
+        const dist = fitDistance(s.camera, radius);
         s.controls.target.copy(center);
-        s.camera.position.set(center.x, center.y + size.y * 0.06, center.z + dist);
+        s.camera.position.set(center.x, center.y + lift, center.z + dist);
         s.camera.near = Math.max(0.01, dist - radius * 3);
         s.camera.far = dist + radius * 8;
         s.camera.updateProjectionMatrix();
@@ -537,7 +562,7 @@ export default function GarmentViewer() {
 
       <canvas ref={canvasRef} aria-label="3D garment with buyable slots" />
 
-      {!card && status === 'ready' && <div className="viewer-hint">Drag to turn it. Click a dashed slot.</div>}
+      {!card && status === 'ready' && <div className="viewer-hint">Drag to turn it. Tap a dashed slot.</div>}
 
       {card && (
         <div className="slotcard">
