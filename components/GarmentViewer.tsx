@@ -44,6 +44,7 @@ type SlotData = {
 type SlotMesh = THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial> & { userData: SlotData };
 
 type CardInfo = {
+  slotId: string;
   label: string;
   cat: string;
   price: string;
@@ -183,16 +184,41 @@ function fitDistance(camera: THREE.PerspectiveCamera, radius: number) {
   return Math.max(radius / Math.sin(vFov / 2), radius / Math.sin(hFov / 2)) * 1.12;
 }
 
-export default function GarmentViewer() {
+export type ViewerProps = {
+  /** Which garments to offer as tabs. Defaults to all three. */
+  garments?: GarmentId[];
+  /** Override the slot map per garment, e.g. the founders maps with every slot on them. */
+  slotSources?: Partial<Record<GarmentId, string>>;
+  /** Override the per-slot copy. Falls back to LISTINGS. */
+  listings?: Partial<Record<GarmentId, Record<string, Listing>>>;
+  /** 'price' prints the number, 'ask' replaces it with a call to enquire. */
+  priceMode?: 'price' | 'ask';
+  /** Label on the card's primary button. */
+  ctaLabel?: string;
+  /** Start on this colourway. */
+  initialColor?: string;
+  /** Called instead of the default early-access hand-off. */
+  onTake?: (detail: { garment: GarmentId; slotId: string; label: string; price: string }) => void;
+};
+
+export default function GarmentViewer({
+  garments: garmentIds = GARMENT_ORDER,
+  slotSources,
+  listings: listingOverrides,
+  priceMode = 'price',
+  ctaLabel,
+  initialColor = '#1b1b1b',
+  onTake,
+}: ViewerProps = {}) {
   const { setAsking, goToAccess } = useAsking();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
 
-  const [garment, setGarment] = useState<GarmentId>('hoodie');
-  const [color, setColor] = useState('#1b1b1b');
+  const [garment, setGarment] = useState<GarmentId>(garmentIds[0]);
+  const [color, setColor] = useState(initialColor);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
-  const [message, setMessage] = useState('Loading the hoodie…');
+  const [message, setMessage] = useState(`Loading the ${GARMENTS[garmentIds[0]].label.toLowerCase()}…`);
   const [card, setCard] = useState<CardInfo | null>(null);
   const [markDraft, setMarkDraft] = useState('');
 
@@ -316,8 +342,8 @@ export default function GarmentViewer() {
     const run = async () => {
       try {
         const [slotDoc, gltf] = await Promise.all([
-          fetch(g.slots).then((r) => {
-            if (!r.ok) throw new Error(`${r.status} on ${g.slots}`);
+          fetch(slotSources?.[garment] ?? g.slots).then((r) => {
+            if (!r.ok) throw new Error(`${r.status} on ${slotSources?.[garment] ?? g.slots}`);
             return r.json() as Promise<SlotDoc>;
           }),
           new GLTFLoader().loadAsync(g.model),
@@ -325,7 +351,7 @@ export default function GarmentViewer() {
         if (cancelled || !api.current) return;
 
         // Pull in any artwork already printed on this garment's slots.
-        const listings = LISTINGS[garment];
+        const listings = listingOverrides?.[garment] ?? LISTINGS[garment];
         await Promise.all(
           [...new Set(Object.values(listings).map((l) => l.art).filter(Boolean) as string[])].map(loadArt),
         );
@@ -437,7 +463,15 @@ export default function GarmentViewer() {
     paint(mesh, 'selected');
     const d = mesh.userData;
     setMarkDraft(d.mark);
-    setCard({ label: d.label, cat: d.listing.cat, price: d.listing.price, why: d.listing.why, buyer: d.listing.buyer, mark: d.mark });
+    setCard({
+      slotId: d.slotId,
+      label: d.label,
+      cat: d.listing.cat,
+      price: d.listing.price,
+      why: d.listing.why,
+      buyer: d.listing.buyer,
+      mark: d.mark,
+    });
   }, []);
 
   useEffect(() => {
@@ -512,6 +546,10 @@ export default function GarmentViewer() {
   /* ---- card actions ------------------------------------------------------ */
   const take = () => {
     if (!card) return;
+    if (onTake) {
+      onTake({ garment, slotId: card.slotId, label: card.label, price: card.price });
+      return;
+    }
     setAsking(`${GARMENTS[garment].label}, ${card.label.toLowerCase()}, ${card.price}`);
     goToAccess();
   };
@@ -532,7 +570,7 @@ export default function GarmentViewer() {
   return (
     <div className="viewer" ref={wrapRef}>
       <div className="viewer-tabs" role="tablist" aria-label="Garment">
-        {GARMENT_ORDER.map((id) => (
+        {garmentIds.map((id) => (
           <button
             key={id}
             type="button"
@@ -571,7 +609,7 @@ export default function GarmentViewer() {
           </button>
           <div className="slotcard-cat">{card.cat}</div>
           <div className="slotcard-name">{card.label}</div>
-          <div className="slotcard-price">{card.price}</div>
+          <div className="slotcard-price">{priceMode === 'ask' ? 'Ask' : card.price}</div>
           <div className={`slotcard-status${card.buyer ? ' sold' : ''}`}>
             {card.buyer ? `Sold to ${card.buyer}` : 'Open'}
           </div>
@@ -598,7 +636,7 @@ export default function GarmentViewer() {
           )}
 
           <button className="btn btn-solid full" type="button" onClick={take}>
-            {card.buyer ? 'Ask when it frees up' : 'Take this slot'}
+            {card.buyer ? 'Ask when it frees up' : (ctaLabel ?? 'Take this slot')}
           </button>
         </div>
       )}

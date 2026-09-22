@@ -7,6 +7,15 @@
 
 import postgres from 'postgres';
 
+export type Enquiry = {
+  name: string;
+  email: string;
+  org: string;
+  slot?: string | null;
+  handle?: string | null;
+  note?: string | null;
+};
+
 export type Signup = {
   name: string;
   email: string;
@@ -21,6 +30,8 @@ declare global {
   var __sashSql: ReturnType<typeof postgres> | undefined;
   // eslint-disable-next-line no-var
   var __sashMemory: Signup[] | undefined;
+  // eslint-disable-next-line no-var
+  var __sashEnquiries: Enquiry[] | undefined;
 }
 
 const url = process.env.DATABASE_URL || process.env.POSTGRES_URL;
@@ -93,4 +104,39 @@ export async function countSignups(): Promise<number | null> {
   await ensure(sql);
   const rows = await sql<{ n: string }[]>`select count(*)::text as n from signups`;
   return Number(rows[0].n);
+}
+
+/** Creates the enquiries table if it is missing. Safe to call on every write. */
+async function ensureEnquiries(sql: NonNullable<ReturnType<typeof client>>) {
+  await sql`
+    create table if not exists slot_enquiries (
+      id          bigserial primary key,
+      name        text        not null,
+      email       text        not null,
+      org         text        not null,
+      slot        text,
+      handle      text,
+      note        text,
+      created_at  timestamptz not null default now()
+    )
+  `;
+}
+
+/** A founders-slot price enquiry. Unlike signups these are not deduplicated:
+    one buyer may ask about several slots, and each ask is worth keeping. */
+export async function saveEnquiry(e: Enquiry): Promise<void> {
+  const sql = client();
+
+  if (!sql) {
+    global.__sashEnquiries = global.__sashEnquiries || [];
+    global.__sashEnquiries.push(e);
+    console.warn('[sash] DATABASE_URL is not set — enquiry kept in memory only:', e.email);
+    return;
+  }
+
+  await ensureEnquiries(sql);
+  await sql`
+    insert into slot_enquiries (name, email, org, slot, handle, note)
+    values (${e.name}, ${e.email}, ${e.org}, ${e.slot ?? null}, ${e.handle ?? null}, ${e.note ?? null})
+  `;
 }

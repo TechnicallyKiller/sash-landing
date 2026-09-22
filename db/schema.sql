@@ -10,3 +10,14 @@ create table if not exists signups (
 );
 
 create unique index if not exists signups_email_key on signups (lower(email));
+
+create table if not exists slot_enquiries (
+  id          bigserial primary key,
+  name        text        not null,
+  email       text        not null,
+  org         text        not null,
+  slot        text,
+  handle      text,
+  note        text,
+  created_at  timestamptz not null default now()
+);
