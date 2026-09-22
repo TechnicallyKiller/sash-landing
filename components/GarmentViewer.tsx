@@ -199,6 +199,8 @@ export type ViewerProps = {
   initialColor?: string;
   /** Called instead of the default early-access hand-off. */
   onTake?: (detail: { garment: GarmentId; slotId: string; label: string; price: string }) => void;
+  /** Slot id to fly the camera to and select. Driven from outside, e.g. a ledger row. */
+  focusSlot?: string | null;
 };
 
 export default function GarmentViewer({
@@ -209,6 +211,7 @@ export default function GarmentViewer({
   ctaLabel,
   initialColor = '#1b1b1b',
   onTake,
+  focusSlot,
 }: ViewerProps = {}) {
   const { setAsking, goToAccess } = useAsking();
 
@@ -233,6 +236,14 @@ export default function GarmentViewer({
     hovered: SlotMesh | null;
     pointerInside: boolean;
     fit: { center: THREE.Vector3; radius: number; lift: number } | null;
+    tween: {
+      from: THREE.Vector3;
+      to: THREE.Vector3;
+      fromTarget: THREE.Vector3;
+      toTarget: THREE.Vector3;
+      start: number;
+      ms: number;
+    } | null;
   } | null>(null);
 
   /* ---- scene, built once ------------------------------------------------ */
@@ -280,7 +291,7 @@ export default function GarmentViewer({
 
     api.current = {
       scene, camera, renderer, controls, garmentRoot, markerRoot,
-      selected: null, hovered: null, pointerInside: false, fit: null,
+      selected: null, hovered: null, pointerInside: false, fit: null, tween: null,
     };
 
     const resize = () => {
@@ -315,7 +326,17 @@ export default function GarmentViewer({
     renderer.setAnimationLoop(() => {
       if (!visible) return;
       const s = api.current!;
-      controls.autoRotate = controls.autoRotate && !s.pointerInside && !s.selected;
+
+      if (s.tween) {
+        const t = Math.min(1, (performance.now() - s.tween.start) / s.tween.ms);
+        // easeInOutCubic: leaves and arrives calmly, moves quickly in between
+        const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        camera.position.lerpVectors(s.tween.from, s.tween.to, e);
+        controls.target.lerpVectors(s.tween.fromTarget, s.tween.toTarget, e);
+        if (t >= 1) s.tween = null;
+      }
+
+      controls.autoRotate = controls.autoRotate && !s.pointerInside && !s.selected && !s.tween;
       controls.update();
       renderer.render(scene, camera);
     });
@@ -542,6 +563,41 @@ export default function GarmentViewer({
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [show]);
+
+  /* ---- fly to a slot the page points at --------------------------------- */
+  useEffect(() => {
+    const s = api.current;
+    if (!s || !focusSlot || status !== 'ready') return;
+    const mesh = s.markerRoot.children.find(
+      (o) => (o as SlotMesh).userData?.slotId === focusSlot,
+    ) as SlotMesh | undefined;
+    if (!mesh) return;
+
+    show(mesh);
+    s.controls.autoRotate = false;
+
+    // Stand off along the slot's own normal so the plate faces the lens square on.
+    const normal = mesh.getWorldDirection(new THREE.Vector3());
+    const dist = (s.fit?.radius ?? 0.6) * 1.45;
+    const to = mesh.position.clone().addScaledVector(normal, dist);
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (reduce) {
+      s.camera.position.copy(to);
+      s.controls.target.copy(mesh.position);
+      s.controls.update();
+      return;
+    }
+
+    s.tween = {
+      from: s.camera.position.clone(),
+      to,
+      fromTarget: s.controls.target.clone(),
+      toTarget: mesh.position.clone(),
+      start: performance.now(),
+      ms: 780,
+    };
+  }, [focusSlot, status, show]);
 
   /* ---- card actions ------------------------------------------------------ */
   const take = () => {

@@ -467,3 +467,130 @@ img{max-width:100%;display:block}
   .fx-row-act{grid-area:act}
   .fx-foot{justify-content:flex-start;gap:8px}
 }
+
+/* ---- escrow machine: the payment actually travels ---- */
+.esc{border-bottom:var(--rule);padding:clamp(28px,4vw,56px) 0 0}
+.esc-head{
+  display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;
+  padding:0 var(--pad) clamp(24px,3vw,36px);
+}
+.esc-head h2{
+  margin:0;font-family:var(--font-archivo),Archivo,sans-serif;font-weight:900;
+  font-size:clamp(32px,4.6vw,64px);line-height:.9;letter-spacing:-.035em;
+}
+.esc-head p{margin:0;max-width:44ch}
+
+.esc-track{
+  position:relative;display:grid;align-items:center;
+  grid-template-columns:auto 1fr auto 1fr auto;
+  gap:0;padding:clamp(22px,3vw,34px) var(--pad);
+  border-top:var(--rule);border-bottom:var(--rule);background:#fafafa;
+}
+.esc-node{
+  display:flex;flex-direction:column;gap:3px;text-align:center;
+  border:var(--rule);background:var(--paper);padding:14px 16px;min-width:116px;z-index:1;
+  transition:background 220ms ease,color 220ms ease,transform 220ms ease;
+}
+.esc-node-label{font-family:var(--font-archivo),Archivo,sans-serif;font-weight:900;font-size:15px;letter-spacing:.06em}
+.esc-node-sub{font-size:11px;letter-spacing:.1em;text-transform:uppercase;opacity:.65}
+.esc-node-vault.is-holding{background:var(--acid);transform:translateY(-3px)}
+
+.esc-wire{position:relative;height:3px;background:var(--ink)}
+.esc-money{
+  position:absolute;top:50%;left:0;transform:translate(-50%,-50%);
+  width:30px;height:30px;background:var(--orange);color:var(--paper);
+  display:flex;align-items:center;justify-content:center;font-size:12px;
+  transition:left 620ms cubic-bezier(.65,0,.35,1),opacity 220ms linear;
+}
+.esc-money-out{opacity:0}
+/* stage 0: money still with the buyer. 1: in the vault. 2: paid out. 3: refunded. */
+.esc-track[data-stage="0"] .esc-money{left:0}
+.esc-track[data-stage="1"] .esc-money{left:100%}
+.esc-track[data-stage="2"] .esc-money{left:100%;opacity:0}
+.esc-track[data-stage="2"] .esc-money-out{opacity:1;left:100%}
+.esc-track[data-stage="3"] .esc-money{left:0}
+.esc-track[data-stage="3"] .esc-money-out{opacity:0}
+.esc-track.is-refund .esc-node-seller{background:var(--ink);color:var(--paper)}
+.esc-track.is-refund .esc-wire-out{background:repeating-linear-gradient(90deg,var(--ink) 0 8px,transparent 8px 16px)}
+
+.esc-stages{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.esc-stage{
+  text-align:left;background:var(--paper);border:0;border-right:var(--rule);
+  padding:clamp(20px,2.6vw,34px) var(--pad);cursor:pointer;
+  display:flex;flex-direction:column;gap:10px;
+  transition:background 180ms ease;
+}
+.esc-stage:last-child{border-right:0}
+.esc-stage:hover{background:#f6f6f6}
+.esc-stage.is-on{background:var(--ink);color:var(--paper)}
+.esc-stage.is-on.is-branch{background:var(--orange);color:var(--paper)}
+.esc-stage-n{
+  font-family:var(--font-archivo),Archivo,sans-serif;font-weight:900;
+  font-size:54px;line-height:.85;letter-spacing:-.035em;
+}
+.esc-stage-head{font-family:var(--font-archivo),Archivo,sans-serif;font-weight:800;font-size:23px;line-height:1.05;letter-spacing:-.02em}
+.esc-stage-body{font-size:14px;line-height:1.6}
+.esc-stage-note{
+  font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  border-top:3px solid currentColor;padding-top:9px;margin-top:auto;opacity:.75;
+}
+
+/* ---- ledger row as a remote control for the 3D garment ---- */
+.fx-row{transition:background 160ms ease}
+.fx-row:hover{background:#fbfbfb}
+.fx-row.is-focused{background:var(--acid)}
+.fx-row.is-focused.is-taken{background:#ededed}
+button.fx-row-name{
+  border:0;background:none;padding:0;text-align:left;cursor:pointer;color:inherit;
+  font-family:var(--font-archivo),Archivo,sans-serif;font-weight:800;font-size:19px;letter-spacing:-.02em;
+  display:flex;flex-direction:column;gap:2px;
+}
+.fx-row-show{
+  font-family:var(--font-dm-mono),ui-monospace,monospace;font-weight:400;
+  font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);
+  opacity:0;transition:opacity 140ms ease;
+}
+.fx-row:hover .fx-row-show,.fx-row.is-focused .fx-row-show,button.fx-row-name:focus-visible .fx-row-show{opacity:1}
+
+.fx-viewer-tip{
+  position:absolute;left:12px;bottom:12px;z-index:3;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;background:var(--ink);color:var(--paper);padding:6px 10px;
+  pointer-events:none;
+}
+.fx-hero-viewer{position:relative}
+.fx-hero-viewer .viewer-hint{display:none}
+
+/* ---- sticky ask bar ---- */
+.fx-bar{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  background:var(--ink);color:var(--paper);border-top:var(--rule);
+  padding:12px var(--pad);
+  transform:translateY(110%);transition:transform 260ms cubic-bezier(.2,.9,.3,1);
+}
+.fx-bar.is-up{transform:none}
+.fx-bar-n{font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+.fx-bar-btn{
+  background:var(--paper);color:var(--ink);border:3px solid var(--paper);
+  padding:11px 20px;cursor:pointer;font-size:14px;min-height:44px;
+}
+.fx-bar-btn:hover{background:var(--orange);border-color:var(--orange);color:var(--paper)}
+.fx-foot{padding-bottom:84px}
+
+.fx-ticker:hover .fx-ticker-track{animation-play-state:paused}
+
+@media (max-width:899px){
+  .esc-track{grid-template-columns:1fr;gap:14px;justify-items:stretch}
+  .esc-wire{height:34px;width:3px;justify-self:center}
+  .esc-money{left:50%;top:0;transition:top 620ms cubic-bezier(.65,0,.35,1),opacity 220ms linear}
+  .esc-track[data-stage="0"] .esc-money{top:0;left:50%}
+  .esc-track[data-stage="1"] .esc-money{top:100%;left:50%}
+  .esc-track[data-stage="2"] .esc-money{opacity:0}
+  .esc-track[data-stage="2"] .esc-money-out{opacity:1;top:100%;left:50%}
+  .esc-track[data-stage="3"] .esc-money{top:0;left:50%}
+  .esc-stage{border-right:0;border-bottom:var(--rule)}
+  .esc-stage:last-child{border-bottom:0}
+}
+@media (prefers-reduced-motion:reduce){
+  .esc-money,.esc-node,.fx-bar{transition:none}
+}

@@ -7,6 +7,8 @@
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GARMENTS, type GarmentId, type Listing } from '@/lib/inventory';
+import CountUp from './CountUp';
+import EscrowMachine from './EscrowMachine';
 import {
   FOUNDERS_FACTS,
   FOUNDERS_GARMENTS,
@@ -33,7 +35,11 @@ export default function FoundersPage() {
   const [listings, setListings] = useState<Partial<Record<GarmentId, Record<string, Listing>>>>({});
   const [tab, setTab] = useState<GarmentId>('hoodie');
   const [asking, setAsking] = useState('');
+  const [focusSlot, setFocusSlot] = useState<string | null>(null);
+  const [pastHero, setPastHero] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* The slot maps are the source of truth for both the ledger and the counts,
      so the page reads the same JSON the 3D viewer does. */
@@ -60,6 +66,45 @@ export default function FoundersPage() {
     };
   }, []);
 
+  useEffect(() => {
+    const el = heroRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setPastHero(!e.isIntersecting), { threshold: 0 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  /* A ledger row points the camera at its own slot on the garment. */
+  const focus = useCallback((garment: GarmentId, slotId: string) => {
+    setTab(garment);
+    setFocusSlot(slotId);
+    const el = document.getElementById('founders-viewer');
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    if (r.bottom < 80 || r.top > window.innerHeight - 80) {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      el.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
+    }
+  }, []);
+
+  /* Hover intent: sweeping down 23 rows should not fire 23 camera flights, so a
+     row has to be held for a moment before the garment turns to it. */
+  const hoverFocus = useCallback(
+    (garment: GarmentId, slotId: string) => {
+      if (hoverTimer.current) clearTimeout(hoverTimer.current);
+      hoverTimer.current = setTimeout(() => focus(garment, slotId), 220);
+    },
+    [focus],
+  );
+
+  const cancelHover = useCallback(() => {
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
+  }, []);
+
+  useEffect(() => () => {
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
+  }, []);
+
   const ask = useCallback((garment: GarmentId, label: string) => {
     setAsking(`${GARMENTS[garment].label}, ${label.toLowerCase()}`);
     const el = formRef.current;
@@ -75,7 +120,7 @@ export default function FoundersPage() {
   return (
     <div className="founders">
       {/* ---- inverted hero ------------------------------------------------ */}
-      <header className="fx-hero">
+      <header className="fx-hero" ref={heroRef}>
         <div className="fx-corner fx-tl">
           A MARKETPLACE
           <br />
@@ -107,15 +152,17 @@ export default function FoundersPage() {
             </div>
           </div>
 
-          <div className="fx-hero-viewer">
+          <div className="fx-hero-viewer" id="founders-viewer">
             <GarmentViewer
               garments={FOUNDERS_GARMENTS}
               slotSources={FOUNDERS_SLOT_SOURCES}
               listings={listings}
               priceMode="ask"
               ctaLabel="Ask for this slot"
+              focusSlot={focusSlot}
               onTake={({ garment, label }) => ask(garment, label)}
             />
+            <div className="fx-viewer-tip">Drag to turn it. Tap any dashed rectangle.</div>
           </div>
         </div>
 
@@ -142,11 +189,11 @@ export default function FoundersPage() {
       {/* ---- the count ----------------------------------------------------- */}
       <section className="fx-count">
         <div className="fx-count-figure">
-          <span className="fx-big">{total || '—'}</span>
+          <CountUp className="fx-big" to={total} />
           <span className="fx-count-label">surfaces on the two garments</span>
         </div>
         <div className="fx-count-figure">
-          <span className="fx-big">{taken}</span>
+          <CountUp className="fx-big" to={taken} />
           <span className="fx-count-label">already taken</span>
         </div>
         <div className="fx-count-figure">
@@ -196,12 +243,20 @@ export default function FoundersPage() {
           {slots.map((slot, i) => {
             const holder = TAKEN[`${tab}:${slot.id}`];
             return (
-              <li className={`fx-row${holder ? ' is-taken' : ''}`} key={slot.id}>
+              <li
+                className={`fx-row${holder ? ' is-taken' : ''}${focusSlot === slot.id ? ' is-focused' : ''}`}
+                key={slot.id}
+                onMouseEnter={() => hoverFocus(tab, slot.id)}
+                onMouseLeave={cancelHover}
+              >
                 <span className="fx-row-i">{String(i + 1).padStart(2, '0')}</span>
                 <span className="fx-row-mark" aria-hidden="true">
                   {holder ? <span className="fx-block">{holder.charAt(0)}</span> : <span className="fx-open" />}
                 </span>
-                <span className="fx-row-name">{slot.label}</span>
+                <button type="button" className="fx-row-name" onClick={() => focus(tab, slot.id)}>
+                  {slot.label}
+                  <span className="fx-row-show">Show on the garment</span>
+                </button>
                 <span className="fx-row-why">{slot.why}</span>
                 <span className="fx-row-act">
                   {holder ? (
@@ -228,30 +283,19 @@ export default function FoundersPage() {
         </p>
       </section>
 
-      {/* ---- how the money moves ------------------------------------------- */}
-      <section className="fx-steps">
-        <h2>Money moves last.</h2>
-        <div className="fx-steps-grid">
-          <div className="fx-step">
-            <div className="fx-step-n">1</div>
-            <div className="fx-step-h">Take the slot.</div>
-            <p>You pick the surface. We agree what a run is and what counts as proof before anyone prints anything.</p>
-          </div>
-          <div className="fx-step">
-            <div className="fx-step-n">2</div>
-            <div className="fx-step-h">Escrow holds it.</div>
-            <p>Your payment locks before the garments are made. Neither side can move it while it sits there.</p>
-          </div>
-          <div className="fx-step">
-            <div className="fx-step-n">3</div>
-            <div className="fx-step-h">Proof releases it.</div>
-            <p>Photos of the run and of the garment worn at the event. Nothing arrives, nothing is paid.</p>
-          </div>
-        </div>
-      </section>
+      <EscrowMachine />
 
       <div ref={formRef}>
         <EnquiryForm asking={asking} slots={docs} onClear={() => setAsking('')} />
+      </div>
+
+      <div className={`fx-bar${pastHero ? ' is-up' : ''}`}>
+        <span className="fx-bar-n">
+          {total - taken} surfaces open
+        </span>
+        <button type="button" className="fx-bar-btn" onClick={() => ask('hoodie', 'not sure yet')}>
+          Ask for the price
+        </button>
       </div>
 
       <footer className="fx-foot">
