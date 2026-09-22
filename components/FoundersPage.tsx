@@ -39,7 +39,6 @@ export default function FoundersPage() {
   const [pastHero, setPastHero] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLElement>(null);
-  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* The slot maps are the source of truth for both the ledger and the counts,
      so the page reads the same JSON the 3D viewer does. */
@@ -74,35 +73,16 @@ export default function FoundersPage() {
     return () => io.disconnect();
   }, []);
 
-  /* A ledger row points the camera at its own slot on the garment. */
-  const focus = useCallback((garment: GarmentId, slotId: string) => {
+  /* A ledger row points the camera at its own slot on the garment. Only a
+     deliberate click may move the page; hovering never scrolls anything. */
+  const focus = useCallback((garment: GarmentId, slotId: string, scroll: boolean) => {
     setTab(garment);
     setFocusSlot(slotId);
+    if (!scroll) return;
     const el = document.getElementById('founders-viewer');
     if (!el) return;
-    const r = el.getBoundingClientRect();
-    if (r.bottom < 80 || r.top > window.innerHeight - 80) {
-      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      el.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
-    }
-  }, []);
-
-  /* Hover intent: sweeping down 23 rows should not fire 23 camera flights, so a
-     row has to be held for a moment before the garment turns to it. */
-  const hoverFocus = useCallback(
-    (garment: GarmentId, slotId: string) => {
-      if (hoverTimer.current) clearTimeout(hoverTimer.current);
-      hoverTimer.current = setTimeout(() => focus(garment, slotId), 220);
-    },
-    [focus],
-  );
-
-  const cancelHover = useCallback(() => {
-    if (hoverTimer.current) clearTimeout(hoverTimer.current);
-  }, []);
-
-  useEffect(() => () => {
-    if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
   }, []);
 
   const ask = useCallback((garment: GarmentId, label: string) => {
@@ -121,6 +101,15 @@ export default function FoundersPage() {
     <div className="founders">
       {/* ---- inverted hero ------------------------------------------------ */}
       <header className="fx-hero" ref={heroRef}>
+        <nav className="fx-nav">
+          <a className="fx-mark" href="/" aria-label="Sash, home">
+            s<i aria-hidden="true" />sh
+          </a>
+          <a className="fx-nav-back" href="/">
+            ← The marketplace
+          </a>
+        </nav>
+
         <div className="fx-corner fx-tl">
           A MARKETPLACE
           <br />
@@ -246,14 +235,12 @@ export default function FoundersPage() {
               <li
                 className={`fx-row${holder ? ' is-taken' : ''}${focusSlot === slot.id ? ' is-focused' : ''}`}
                 key={slot.id}
-                onMouseEnter={() => hoverFocus(tab, slot.id)}
-                onMouseLeave={cancelHover}
               >
                 <span className="fx-row-i">{String(i + 1).padStart(2, '0')}</span>
                 <span className="fx-row-mark" aria-hidden="true">
                   {holder ? <span className="fx-block">{holder.charAt(0)}</span> : <span className="fx-open" />}
                 </span>
-                <button type="button" className="fx-row-name" onClick={() => focus(tab, slot.id)}>
+                <button type="button" className="fx-row-name" onClick={() => focus(tab, slot.id, true)}>
                   {slot.label}
                   <span className="fx-row-show">Show on the garment</span>
                 </button>

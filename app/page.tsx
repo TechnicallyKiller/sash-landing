@@ -18,6 +18,10 @@ export default function Page() {
         <nav>
           <a href="#inventory">Inventory</a>
           <a href="#how">How it works</a>
+          <a className="nav-tag" href="/founders">
+            Founders
+            <span className="nav-tag-dot" aria-hidden="true" />
+          </a>
           <a className="btn btn-solid" href="#access">Get early access</a>
         </nav>
       </header>
